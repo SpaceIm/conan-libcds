@@ -86,6 +86,8 @@ class LibcdsConan(ConanFile):
         self.cpp_info.components["_libcds"].names["cmake_find_package"] = cmake_target
         self.cpp_info.components["_libcds"].names["cmake_find_package_multi"] = cmake_target
         self.cpp_info.components["_libcds"].libs = tools.collect_libs(self)
+        if self.settings.os == "Windows" and not self.options.shared:
+            self.cpp_info.components["_libcds"].defines = ["CDS_BUILD_STATIC_LIB"]
         if self.settings.os == "Linux":
             self.cpp_info.components["_libcds"].system_libs = ["pthread"]
         self.cpp_info.components["_libcds"].requires.append("boost::boost")

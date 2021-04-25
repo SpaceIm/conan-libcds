@@ -83,4 +83,4 @@ class LibcdsConan(ConanFile):
             self.cpp_info.components["_libcds"].system_libs = ["pthread"]
         if self.settings.compiler in ["gcc", "clang", "apple-clang"] and self.settings.arch == "x86_64":
             self.cpp_info.components["_libcds"].cxxflags = ["-mcx16"]
-        self.cpp_info.components["_libcds"].requires = ["boost::boost"]
+        self.cpp_info.components["_libcds"].requires = ["boost::headers"]

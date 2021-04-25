@@ -1,13 +1,12 @@
 import os
 
 from conans import ConanFile, CMake, tools
-from conans.errors import ConanInvalidConfiguration
 
 class LibcdsConan(ConanFile):
     name = "libcds"
     description = "C++11 library of Concurrent Data Structures."
     license = "BSL-1.0"
-    topics = ("conan", "libcds", "container", "concurrent")
+    topics = ("conan", "libcds", "concurrent", "lock-free", "containers", "hazard-pointer", "rcu")
     homepage = "https://github.com/khizmax/libcds"
     url = "https://github.com/conan-io/conan-center-index"
     exports_sources = ["CMakeLists.txt", "patches/**"]
@@ -37,27 +36,13 @@ class LibcdsConan(ConanFile):
             del self.options.fPIC
         if self.settings.compiler.cppstd:
             tools.check_min_cppstd(self, 11)
-        self._strict_options_requirements()
-
-    def _strict_options_requirements(self):
-        pass
 
     def requirements(self):
         self.requires("boost/1.75.0")
 
-    def _validate_dependency_graph(self):
-        pass
-
     def source(self):
         tools.get(**self.conan_data["sources"][self.version])
         os.rename(self.name + "-" + self.version, self._source_subfolder)
-
-    def build(self):
-        self._validate_dependency_graph()
-        for patch in self.conan_data.get("patches", {}).get(self.version, []):
-            tools.patch(**patch)
-        cmake = self._configure_cmake()
-        cmake.build()
 
     def _configure_cmake(self):
         if self._cmake:
@@ -72,6 +57,12 @@ class LibcdsConan(ConanFile):
         self._cmake.definitions["ENABLE_STRESS_TEST"] = False
         self._cmake.configure()
         return self._cmake
+
+    def build(self):
+        for patch in self.conan_data.get("patches", {}).get(self.version, []):
+            tools.patch(**patch)
+        cmake = self._configure_cmake()
+        cmake.build()
 
     def package(self):
         self.copy("LICENSE", dst="licenses", src=self._source_subfolder)
@@ -90,4 +81,6 @@ class LibcdsConan(ConanFile):
             self.cpp_info.components["_libcds"].defines = ["CDS_BUILD_STATIC_LIB"]
         if self.settings.os == "Linux":
             self.cpp_info.components["_libcds"].system_libs = ["pthread"]
-        self.cpp_info.components["_libcds"].requires.append("boost::boost")
+        if self.settings.compiler in ["gcc", "clang", "apple-clang"] and self.settings.arch == "x86_64":
+            self.cpp_info.components["_libcds"].cxxflags = ["-mcx16"]
+        self.cpp_info.components["_libcds"].requires = ["boost::boost"]

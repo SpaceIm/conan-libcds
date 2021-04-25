@@ -43,7 +43,7 @@ class LibcdsConan(ConanFile):
         pass
 
     def requirements(self):
-        self.requires("boost/1.74.0")
+        self.requires("boost/1.75.0")
 
     def _validate_dependency_graph(self):
         pass
